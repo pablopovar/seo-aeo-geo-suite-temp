@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · Reports{% endblock %}
+{% block content %}
+<div class="heading">
+  <div><h1>Reports</h1><p>Run, inspect, and export GEO/AEO reports.</p></div>
+  <form method="post" action="{{ url_for('run_audit', domain=site.domain) }}">
+    <button class="primary">Run GEO/AEO Audit</button>
+  </form>
+</div>
+
+{% if request.args.get('started') %}
+<div class="notice">Audit command started. Refresh this page when it completes.</div>
+{% endif %}
+
+<div class="panel">
+  {% if command_enabled %}
+  <p>The dashboard is configured to launch the GEO/AEO auditor directly.</p>
+  {% else %}
+  <p>No direct audit command is configured yet. “Run GEO/AEO Audit” opens the existing auditor at <code>{{ aeo_auditor_url }}</code>.</p>
+  {% endif %}
+</div>
+
+<ul class="reports large">
+{% for r in reports %}
+  <li>
+    <a href="{{ url_for('download_report', filename=r) }}" target="_blank">{{ r }}</a>
+    <a class="button small" href="{{ url_for('download_report', filename=r) }}" download>Export</a>
+  </li>
+{% else %}
+  <li>No reports found in the mounted reports directory.</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · Page{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <h1>{{ page_url.replace('https://' + site.domain, '') or '/' }}</h1>
+    <p><a href="{{ page_url }}" target="_blank">{{ page_url }}</a></p>
+  </div>
+</div>
+
+{% if summary %}
+<div class="cards">
+  <div class="card"><span>Observed keywords</span><strong>{{ summary.keywords }}</strong></div>
+  <div class="card"><span>Impressions</span><strong>{{ summary.impressions }}</strong></div>
+  <div class="card"><span>Clicks</span><strong>{{ summary.clicks }}</strong></div>
+  <div class="card"><span>Best position</span><strong>{{ summary.best_position }}</strong></div>
+  <div class="card"><span>Average position</span><strong>{{ summary.avg_position }}</strong></div>
+  <div class="card"><span>Last observed</span><strong>{{ summary.last_seen }}</strong></div>
+</div>
+{% endif %}
+
+<div class="grid2">
+<section>
+  <h2>SEO · Ranking keywords</h2>
+  <div class="table-wrap">
+  <table data-sortable>
+    <thead><tr><th data-sort="text">Keyword</th><th data-sort="number">Impr.</th><th data-sort="number">Clicks</th><th data-sort="number">Best</th><th data-sort="number">Avg</th><th data-sort="number">Latest</th><th data-sort="text">Status</th></tr></thead>
+    <tbody>
+    {% for r in keywords %}
+      <tr>
+        <td>{{ r.query }}</td>
+        <td>{{ r.impressions }}</td>
+        <td>{{ r.clicks }}</td>
+        <td>{{ r.best_position }}</td>
+        <td>{{ r.avg_position }}</td>
+        <td>{{ r.latest_position }}</td>
+        <td><span class="status {{ r.status }}">{{ r.status }}</span></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7">No observed keywords for this page.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>GEO / AEO · Page audit</h2>
+  <div class="panel">
+    <p>Page-level GEO/AEO adapter point.</p>
+    <p>The first version keeps the auditor as a separate engine; its page findings can be attached here once we map its current output schema.</p>
+  </div>
+
+  <h2>Combined signals</h2>
+  <div class="panel">
+    <p>This panel is reserved for cross-engine findings such as:</p>
+    <ul>
+      <li>ranking page with weak GEO/AEO score;</li>
+      <li>high-impression page with low CTR;</li>
+      <li>strong GEO/AEO page with little search visibility;</li>
+      <li>query-to-page mismatch or cannibalization.</li>
+    </ul>
+  </div>
+</section>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · Wanted Keywords{% endblock %}
+{% block content %}
+<div class="heading"><div><h1>Wanted Keywords</h1><p>Keywords intentionally selected for {{ site.domain }}.</p></div></div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+<div class="panel wanted-add-panel"><h2>Add keyword</h2><form method="post" action="{{ url_for('wanted_add', domain=site.domain) }}" class="research-form"><input type="text" name="keyword" placeholder="New wanted keyword" required><button class="primary" type="submit">Add</button></form></div>
+<div class="research-list-head">
+  <form method="get" class="search research-search"><input name="q" value="{{ q }}" placeholder="Regex search wanted keywords" title="\\d = number; dog|puppy = OR; (?=.*dog)(?=.*park) = AND; ^(?!.*boarding).* = NOT containing"><input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="dir" value="{{ direction }}"><input type="hidden" name="per_page" value="{{ per_page }}"><button type="submit">Search</button>{% if q %}<a class="button" href="{{ url_for('wanted', domain=site.domain, sort=sort, dir=direction, per_page=per_page) }}">Clear</a>{% endif %}</form>
+  <form method="get" class="research-page-size"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="dir" value="{{ direction }}"><label>Show <select name="per_page" onchange="this.form.submit()">{% for n in [25,50,100,250,1000] %}<option value="{{ n }}" {% if n == per_page %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></label></form>
+  <div class="research-count">{{ total }} wanted keywords</div>
+</div>
+
+<form method="get" class="wanted-tag-filter-form">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="dir" value="{{ direction }}">
+  <input type="hidden" name="per_page" value="{{ per_page }}">
+
+  <div class="tag-filter-group">
+    <details class="tag-filter">
+      <summary>Show tags{% if show_tags %} ({{ show_tags|length }}){% endif %}</summary>
+      <div class="tag-filter-menu">
+        <label><input type="checkbox" name="show_tag" value="__untagged__" {% if "__untagged__" in show_tags %}checked{% endif %}> Untagged</label>
+        {% for tag in tags %}
+        <label><input type="checkbox" name="show_tag" value="{{ tag.id }}" {% if tag.id|string in show_tags %}checked{% endif %}> {{ tag.name }}</label>
+        {% endfor %}
+        <button type="submit">Apply</button>
+      </div>
+    </details>
+
+    <details class="tag-filter">
+      <summary>Hide tags{% if hide_tags %} ({{ hide_tags|length }}){% endif %}</summary>
+      <div class="tag-filter-menu">
+        <label><input type="checkbox" name="hide_tag" value="__untagged__" {% if "__untagged__" in hide_tags %}checked{% endif %}> Untagged</label>
+        {% for tag in tags %}
+        <label><input type="checkbox" name="hide_tag" value="{{ tag.id }}" {% if tag.id|string in hide_tags %}checked{% endif %}> {{ tag.name }}</label>
+        {% endfor %}
+        <button type="submit">Apply</button>
+      </div>
+    </details>
+  </div>
+</form>
+
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Keyword</th><th>Avg. monthly searches</th><th>Competition</th><th>Tags</th><th>Page</th><th>Actions</th></tr></thead><tbody>
+{% for r in rows %}
+<tr><td>{{ start_index + loop.index0 }}</td><td>{{ r.keyword }}</td><td>{{ "{:,}".format(r.avg_monthly_searches) if r.avg_monthly_searches is not none else "—" }}</td><td>{% if r.competition %}<span class="competition competition-{{ r.competition|lower }}">{{ r.competition }}</span>{% else %}—{% endif %}</td><td class="keyword-tags">{% if r.tags %}{% for tag in r.tags.split("||") %}<span class="keyword-tag">{{ tag }}</span>{% endfor %}{% else %}<span class="keyword-untagged">Untagged</span>{% endif %}</td>
+<td><form method="post" action="{{ url_for('wanted_assign_page', domain=site.domain, keyword_id=r.id) }}" class="wanted-page-form"><input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="dir" value="{{ direction }}"><input type="hidden" name="per_page" value="{{ per_page }}"><input type="hidden" name="page" value="{{ page }}"><select name="page_id"><option value="">Unassigned</option>{% for p in page_options %}<option value="{{ p.id }}" {% if r.page_id == p.id %}selected{% endif %}>{{ p.path }}</option>{% endfor %}</select><button type="submit">Assign</button></form></td>
+<td><form method="post" action="{{ url_for('wanted_delete', domain=site.domain, keyword_id=r.id) }}" onsubmit="return confirm('Delete this wanted keyword?')"><button type="submit" class="danger-button">Delete</button></form></td></tr>
+{% else %}<tr><td colspan="7">No wanted keywords yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% if pages > 1 %}<nav class="research-pagination">{% if page > 1 %}<a class="button" href="{{ url_for('wanted', domain=site.domain, q=q, sort=sort, dir=direction, per_page=per_page, page=page-1) }}">← Previous</a>{% else %}<span class="button disabled-button">← Previous</span>{% endif %}<span class="pagination-info">Page {{ page }} of {{ pages }}</span>{% if page < pages %}<a class="button" href="{{ url_for('wanted', domain=site.domain, q=q, sort=sort, dir=direction, per_page=per_page, page=page+1) }}">Next →</a>{% else %}<span class="button disabled-button">Next →</span>{% endif %}</nav>{% endif %}
+{% endblock %}

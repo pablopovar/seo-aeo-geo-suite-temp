@@ -1,0 +1,16 @@
+services:
+  opengsc:
+    build: .
+#    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-4017}:4000"
+    env_file:
+      - .env
+    environment:
+      PORT: "4000"
+      DATABASE_URL: "file:/data/prod.db"
+    volumes:
+      - opengsc-data:/data
+
+volumes:
+  opengsc-data:

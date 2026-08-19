@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · Research Keywords{% endblock %}
+{% block content %}
+
+<div class="heading">
+  <div>
+    <h1>Research Keywords</h1>
+    <p>Uploaded keyword candidates for {{ site.domain }}.</p>
+  </div>
+</div>
+
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+
+<div class="panel">
+  <h2>Import CSV</h2>
+  <form method="post" action="{{ url_for('research_upload', domain=site.domain) }}" enctype="multipart/form-data" class="research-form">
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button class="primary" type="submit">Upload CSV</button>
+  </form>
+  <p class="research-help">Save moves a keyword into Wanted Keywords and preserves all tags.</p>
+</div>
+
+<form method="get" class="research-filter-form">
+  <div class="research-list-head">
+    <div class="search research-search">
+      <input name="q" value="{{ q }}" placeholder="Regex search research keywords" title="\\d = number; dog|puppy = OR; (?=.*dog)(?=.*park) = AND; ^(?!.*boarding).* = NOT containing">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <input type="hidden" name="dir" value="{{ direction }}">
+      <button type="submit">Search</button>
+      {% if q or show_tags or hide_tags %}<a class="button" href="{{ url_for('research', domain=site.domain, sort=sort, dir=direction, per_page=per_page) }}">Clear filters</a>{% endif %}
+    </div>
+
+    <div class="tag-filter-group">
+      <details class="tag-filter">
+        <summary>Show tags{% if show_tags %} ({{ show_tags|length }}){% endif %}</summary>
+        <div class="tag-filter-menu">
+          <label><input type="checkbox" name="show_tag" value="__untagged__" {% if '__untagged__' in show_tags %}checked{% endif %}> Untagged</label>
+          {% for tag in tags %}<label><input type="checkbox" name="show_tag" value="{{ tag.id }}" {% if tag.id|string in show_tags %}checked{% endif %}> {{ tag.name }}</label>{% endfor %}
+          <button type="submit">Apply</button>
+        </div>
+      </details>
+      <details class="tag-filter">
+        <summary>Hide tags{% if hide_tags %} ({{ hide_tags|length }}){% endif %}</summary>
+        <div class="tag-filter-menu">
+          <label><input type="checkbox" name="hide_tag" value="__untagged__" {% if '__untagged__' in hide_tags %}checked{% endif %}> Untagged</label>
+          {% for tag in tags %}<label><input type="checkbox" name="hide_tag" value="{{ tag.id }}" {% if tag.id|string in hide_tags %}checked{% endif %}> {{ tag.name }}</label>{% endfor %}
+          <button type="submit">Apply</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="research-page-size">
+      <label>Show <select name="per_page" onchange="this.form.submit()">{% for n in [25,50,100,250,1000] %}<option value="{{ n }}" {% if n == per_page %}selected{% endif %}>{{ n }}</option>{% endfor %}</select></label>
+    </div>
+
+    <div class="research-count">{% if q or show_tags or hide_tags %}{{ filtered_total }} matching · {{ total }} total{% else %}{{ total }} research keywords{% endif %}</div>
+  </div>
+</form>
+
+<form id="bulkActionForm" method="post">
+  <input type="hidden" name="scope" id="bulkScope" value="selected">
+  <input type="hidden" name="q" value="{{ q }}">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <input type="hidden" name="dir" value="{{ direction }}">
+  <input type="hidden" name="per_page" value="{{ per_page }}">
+  <input type="hidden" name="page" value="{{ page }}">
+  {% for value in show_tags %}<input type="hidden" name="show_tag" value="{{ value }}">{% endfor %}
+  {% for value in hide_tags %}<input type="hidden" name="hide_tag" value="{{ value }}">{% endfor %}
+</form>
+
+{% macro tag_controls(position) %}
+<div class="bulk-toolbar bulk-toolbar-{{ position }}">
+  <div class="bulk-select-actions">
+    <button type="button" class="button select-page">Select all in page</button>
+    <button type="button" class="button select-all">Select all {{ total }}</button>
+    <span class="selection-status">0 selected</span>
+  </div>
+
+  <div class="bulk-tag-actions">
+    <select class="bulk-tag-select"><option value="">Choose tag…</option>{% for tag in tags %}<option value="{{ tag.id }}">{{ tag.name }}</option>{% endfor %}</select>
+    <input type="text" class="bulk-new-tag" placeholder="or new tag">
+    <button type="submit" form="bulkActionForm" formaction="{{ url_for('research_bulk_tag', domain=site.domain) }}" name="tag_action" value="add" class="button bulk-tag-button">Add tag</button>
+    <button type="submit" form="bulkActionForm" formaction="{{ url_for('research_bulk_tag', domain=site.domain) }}" name="tag_action" value="remove" class="button bulk-tag-button">Remove tag</button>
+  </div>
+
+  <div class="bulk-primary-actions">
+    <button type="submit" form="bulkActionForm" formaction="{{ url_for('research_bulk_save', domain=site.domain) }}" class="primary bulk-save-button" disabled>Save selected</button>
+    <button type="submit" form="bulkActionForm" formaction="{{ url_for('research_bulk_delete', domain=site.domain) }}" class="danger-button bulk-delete-button" disabled>Delete selected</button>
+  </div>
+</div>
+{% endmacro %}
+
+{{ tag_controls('top') }}
+
+<div class="table-wrap"><table>
+<thead><tr>
+  <th class="research-check-col"><input type="checkbox" id="pageCheckbox"></th>
+  <th>#</th>
+  <th><a class="research-sort" href="{{ url_for('research', domain=site.domain, q=q, sort='keyword', dir=next_keyword_dir, per_page=per_page, page=1, show_tag=show_tags, hide_tag=hide_tags) }}">Keyword {% if sort == 'keyword' %}{{ '▲' if direction == 'asc' else '▼' }}{% else %}↕{% endif %}</a></th>
+  <th><a class="research-sort" href="{{ url_for('research', domain=site.domain, q=q, sort='searches', dir=next_searches_dir, per_page=per_page, page=1, show_tag=show_tags, hide_tag=hide_tags) }}">Avg. monthly searches {% if sort == 'searches' %}{{ '▲' if direction == 'asc' else '▼' }}{% else %}↕{% endif %}</a></th>
+  <th><a class="research-sort" href="{{ url_for('research', domain=site.domain, q=q, sort='competition', dir=next_competition_dir, per_page=per_page, page=1, show_tag=show_tags, hide_tag=hide_tags) }}">Competition {% if sort == 'competition' %}{{ '▲' if direction == 'asc' else '▼' }}{% else %}↕{% endif %}</a></th>
+  <th><a class="research-sort" href="{{ url_for('research', domain=site.domain, q=q, sort='tag', dir=next_tag_dir, per_page=per_page, page=1, show_tag=show_tags, hide_tag=hide_tags) }}">Tags {% if sort == 'tag' %}{{ '▲' if direction == 'asc' else '▼' }}{% else %}↕{% endif %}</a></th>
+  <th>Actions</th>
+</tr></thead>
+<tbody>
+{% for r in rows %}
+<tr>
+  <td class="research-check-col"><input type="checkbox" class="keyword-select" name="keyword_ids" value="{{ r.id }}" form="bulkActionForm"></td>
+  <td>{{ start_index + loop.index0 }}</td>
+  <td>{{ r.keyword }}</td>
+  <td>{{ "{:,}".format(r.avg_monthly_searches) if r.avg_monthly_searches is not none else "—" }}</td>
+  <td>{% if r.competition %}<span class="competition competition-{{ r.competition|lower }}">{{ r.competition }}</span>{% else %}—{% endif %}</td>
+  <td class="keyword-tags">{% if r.tags %}{% for tag in r.tags.split('||') %}<span class="keyword-tag">{{ tag }}</span>{% endfor %}{% else %}<span class="keyword-untagged">Untagged</span>{% endif %}</td>
+  <td class="research-row-actions">
+    <form method="post" action="{{ url_for('research_save', domain=site.domain, keyword_id=r.id) }}">
+      <input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="dir" value="{{ direction }}"><input type="hidden" name="per_page" value="{{ per_page }}"><input type="hidden" name="page" value="{{ page }}">
+      {% for value in show_tags %}<input type="hidden" name="show_tag" value="{{ value }}">{% endfor %}{% for value in hide_tags %}<input type="hidden" name="hide_tag" value="{{ value }}">{% endfor %}
+      <button type="submit" class="primary">Save</button>
+    </form>
+    <form method="post" action="{{ url_for('research_delete', domain=site.domain, keyword_id=r.id) }}" onsubmit="return confirm('Delete this research keyword?')">
+      <input type="hidden" name="q" value="{{ q }}"><input type="hidden" name="sort" value="{{ sort }}"><input type="hidden" name="dir" value="{{ direction }}"><input type="hidden" name="per_page" value="{{ per_page }}"><input type="hidden" name="page" value="{{ page }}">
+      {% for value in show_tags %}<input type="hidden" name="show_tag" value="{{ value }}">{% endfor %}{% for value in hide_tags %}<input type="hidden" name="hide_tag" value="{{ value }}">{% endfor %}
+      <button type="submit" class="danger-button">Delete</button>
+    </form>
+  </td>
+</tr>
+{% else %}<tr><td colspan="7">No research keywords match the current filters.</td></tr>{% endfor %}
+</tbody></table></div>
+
+{{ tag_controls('bottom') }}
+
+{% if pages > 1 %}<nav class="research-pagination">
+{% if page > 1 %}<a class="button" href="{{ url_for('research', domain=site.domain, q=q, sort=sort, dir=direction, per_page=per_page, page=page-1, show_tag=show_tags, hide_tag=hide_tags) }}">← Previous</a>{% else %}<span class="button disabled-button">← Previous</span>{% endif %}
+<span class="pagination-info">Page {{ page }} of {{ pages }} · {{ start_index }}–{{ end_index }} of {{ filtered_total }}</span>
+{% if page < pages %}<a class="button" href="{{ url_for('research', domain=site.domain, q=q, sort=sort, dir=direction, per_page=per_page, page=page+1, show_tag=show_tags, hide_tag=hide_tags) }}">Next →</a>{% else %}<span class="button disabled-button">Next →</span>{% endif %}
+</nav>{% endif %}
+
+<script>
+(() => {
+  const boxes=[...document.querySelectorAll('.keyword-select')];
+  const pageCheckbox=document.getElementById('pageCheckbox');
+  const statuses=[...document.querySelectorAll('.selection-status')];
+  const saveButtons=[...document.querySelectorAll('.bulk-save-button')];
+  const deleteButtons=[...document.querySelectorAll('.bulk-delete-button')];
+  const tagButtons=[...document.querySelectorAll('.bulk-tag-button')];
+  const selectPageButtons=[...document.querySelectorAll('.select-page')];
+  const selectAllButtons=[...document.querySelectorAll('.select-all')];
+  const scope=document.getElementById('bulkScope');
+  const total={{ total|int }};
+  let allSelected=false;
+  const selectedCount=()=>boxes.filter(x=>x.checked).length;
+
+  function refresh(){
+    const count=selectedCount(); const pageAll=boxes.length>0&&boxes.every(x=>x.checked); const pageAny=boxes.some(x=>x.checked);
+    pageCheckbox.checked=pageAll; pageCheckbox.indeterminate=pageAny&&!pageAll;
+    statuses.forEach(x=>x.textContent=allSelected?`All ${total} keywords selected`:`${count} selected`);
+    selectPageButtons.forEach(x=>x.textContent=pageAll&&!allSelected?'Clear page selection':'Select all in page');
+    selectAllButtons.forEach(x=>x.textContent=allSelected?'Clear all selection':`Select all ${total}`);
+    const enabled=allSelected?total>0:count>0;
+    saveButtons.forEach(x=>{x.disabled=!enabled;x.textContent=allSelected?`Save all ${total}`:(count?`Save selected (${count})`:'Save selected')});
+    deleteButtons.forEach(x=>{x.disabled=!enabled;x.textContent=allSelected?`Delete all ${total}`:(count?`Delete selected (${count})`:'Delete selected')});
+    tagButtons.forEach(x=>x.disabled=!enabled); scope.value=allSelected?'all':'selected';
+  }
+  function togglePage(){allSelected=false;const next=!(boxes.length>0&&boxes.every(x=>x.checked));boxes.forEach(x=>x.checked=next);refresh()}
+  function toggleAll(){allSelected=!allSelected;boxes.forEach(x=>x.checked=allSelected);refresh()}
+  pageCheckbox.addEventListener('change',()=>{allSelected=false;boxes.forEach(x=>x.checked=pageCheckbox.checked);refresh()});
+  boxes.forEach(x=>x.addEventListener('change',()=>{allSelected=false;refresh()}));
+  selectPageButtons.forEach(x=>x.addEventListener('click',togglePage)); selectAllButtons.forEach(x=>x.addEventListener('click',toggleAll));
+  saveButtons.forEach(button=>button.addEventListener('click',event=>{const n=allSelected?total:selectedCount();if(!n||!confirm(`Move ${n} keyword${n===1?'':'s'} to Wanted? Tags will be preserved.`))event.preventDefault()}));
+  deleteButtons.forEach(button=>button.addEventListener('click',event=>{const n=allSelected?total:selectedCount();if(!n||!confirm(`Delete ${n} research keyword${n===1?'':'s'}?`))event.preventDefault()}));
+  tagButtons.forEach(button=>button.addEventListener('click',event=>{
+    const toolbar=button.closest('.bulk-toolbar'); const select=toolbar.querySelector('.bulk-tag-select'); const input=toolbar.querySelector('.bulk-new-tag');
+    let hiddenSelect=document.getElementById('bulkTagId'); let hiddenNew=document.getElementById('bulkNewTag');
+    if(!hiddenSelect){hiddenSelect=document.createElement('input');hiddenSelect.type='hidden';hiddenSelect.name='tag_id';hiddenSelect.id='bulkTagId';document.getElementById('bulkActionForm').appendChild(hiddenSelect)}
+    if(!hiddenNew){hiddenNew=document.createElement('input');hiddenNew.type='hidden';hiddenNew.name='new_tag';hiddenNew.id='bulkNewTag';document.getElementById('bulkActionForm').appendChild(hiddenNew)}
+    hiddenSelect.value=select.value; hiddenNew.value=input.value.trim();
+    const n=allSelected?total:selectedCount(); if(!n){event.preventDefault();return}
+    if(button.value==='add'&&!hiddenSelect.value&&!hiddenNew.value){alert('Choose an existing tag or enter a new tag.');event.preventDefault()}
+    if(button.value==='remove'&&!hiddenSelect.value){alert('Choose the tag to remove.');event.preventDefault()}
+  }));
+  refresh();
+})();
+</script>
+
+{% endblock %}

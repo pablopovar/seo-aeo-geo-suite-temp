@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}10-Page Report — {{ site.domain }}{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <h1>10-Page Report</h1>
+    <p>{{ site.domain }}</p>
+  </div>
+</div>
+
+<section class="panel">
+  <p>Ten pages are proposed automatically. Review the selection before running. You can replace any proposed page.</p>
+
+  <form method="post" action="{{ url_for('ten_page_run', domain=site.domain) }}">
+    <div class="ten-page-summary"><strong id="ten-page-count">0</strong> pages selected</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Select</th><th>URL</th><th>Reason</th></tr></thead>
+        <tbody>
+        {% for row in candidates %}
+          <tr>
+            <td><input type="checkbox" name="urls" value="{{ row.url }}" {% if row.selected %}checked{% endif %}></td>
+            <td>{{ row.path }}</td>
+            <td>{{ row.reason }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ten-page-controls">
+      <label>Delay (ms)<input type="number" name="delay_ms" min="0" max="10000" value="2000"></label>
+      <label><input type="checkbox" name="obey_robots" value="1" checked> Obey robots.txt</label>
+      <button type="submit" class="primary">Run 10-Page Report</button>
+    </div>
+  </form>
+</section>
+
+<script>
+(() => {
+  const boxes = [...document.querySelectorAll('input[name="urls"]')];
+  const counter = document.getElementById('ten-page-count');
+  function refresh() {
+    const checked = boxes.filter(b => b.checked);
+    counter.textContent = checked.length;
+    boxes.forEach(b => { b.disabled = !b.checked && checked.length >= 10; });
+  }
+  boxes.forEach(b => b.addEventListener('change', refresh));
+  refresh();
+})();
+</script>
+{% endblock %}

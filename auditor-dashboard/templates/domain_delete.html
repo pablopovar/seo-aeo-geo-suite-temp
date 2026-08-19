@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Delete Domain — {{ site.domain }}{% endblock %}
+{% block content %}
+<div class="heading">
+  <div><h1>Delete Domain</h1><p>{{ site.domain }}</p></div>
+</div>
+<section class="panel danger-zone">
+  <h2>Delete {{ site.domain }}</h2>
+  <p>This removes the domain and all dashboard-owned data for it. External GSC/GA4 connections are not deleted.</p>
+  <form method="post" action="{{ url_for('domain_delete', domain=site.domain) }}"
+        onsubmit="return confirm('Delete {{ site.domain }} and all dashboard data for it?');">
+    <button type="submit">Delete Domain</button>
+  </form>
+</section>
+{% endblock %}

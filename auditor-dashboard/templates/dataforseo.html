@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}DataForSEO — {{ site.domain }}{% endblock %}
+{% block content %}
+<div class="heading"><div><h1>DataForSEO</h1><p>Extension settings for {{ site.domain }}.</p></div></div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+
+<section class="panel">
+  <h2>Connector</h2>
+  <p><strong>Credentials:</strong> {% if dfs.credentials_present %}configured{% else %}missing{% endif %}</p>
+  <p><strong>Project:</strong> {% if dfs.project_enabled %}enabled{% else %}disabled{% endif %}</p>
+  <p><strong>Kill switch:</strong> {% if dfs.kill_switch %}<strong>ON — DataForSEO disabled</strong>{% else %}off{% endif %}</p>
+  <form method="post" action="{{ url_for('dataforseo_settings', domain=site.domain) }}">
+    <p><label><input type="checkbox" name="enabled" value="1" {% if dfs.project_enabled %}checked{% endif %}> Enable DataForSEO for this project</label></p>
+    <p><label>Max API calls per report <input type="number" name="max_calls_per_run" min="0" max="20" value="{{ dfs.max_calls_per_run }}"></label></p>
+    <p><label>Max items per report <input type="number" name="max_items_per_run" min="1" max="1000" value="{{ dfs.max_items_per_run }}"></label></p>
+    <button type="submit">Save Project Settings</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Enabled Features</h2>
+  <div class="empty-state">No selectable features yet. Future DataForSEO modules will appear here.</div>
+</section>
+
+<section class="panel danger-zone">
+  <h2>DataForSEO Kill Switch</h2>
+  <p>When ON, every DataForSEO network call is blocked regardless of project settings.</p>
+  <form method="post" action="{{ url_for('dataforseo_kill_switch', domain=site.domain) }}">
+    <input type="hidden" name="kill" value="{% if dfs.kill_switch %}0{% else %}1{% endif %}">
+    <button type="submit">{% if dfs.kill_switch %}Turn Kill Switch OFF{% else %}Turn Kill Switch ON{% endif %}</button>
+  </form>
+  {% if dfs.env_kill_switch %}<p><strong>Environment kill switch is ON. The UI cannot override it.</strong></p>{% endif %}
+</section>
+
+<section class="panel">
+  <h2>Minimal Conversation-Starter Pull</h2>
+  <p>Uses only Domain Rank Overview plus a tiny Ranked Keywords sample, within this project's limits.</p>
+  <form method="post" action="{{ url_for('dataforseo_pull_minimal', domain=site.domain) }}">
+    <button type="submit">Pull Minimal Data</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Usage</h2>
+  <p>Calls: {{ usage.calls }} · Requested items: {{ usage.requested_items }} · Returned items: {{ usage.returned_items }} · API cost: ${{ '%.6f'|format(usage.api_cost or 0) }}</p>
+</section>
+{% endblock %}

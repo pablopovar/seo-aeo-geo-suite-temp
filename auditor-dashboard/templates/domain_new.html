@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Add Domain{% endblock %}
+{% block content %}
+<div class="heading">
+  <div><h1>Add Domain</h1><p>Add a website independently of Google Search Console.</p></div>
+</div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+<section class="panel add-domain-panel">
+  <form method="post" action="{{ url_for('domain_new') }}" class="research-form">
+    <input type="text" name="domain" placeholder="example.com or https://example.com/" required autofocus>
+    <button type="submit" class="primary">Add Domain</button>
+  </form>
+  <p class="research-help">The platform creates the domain, discovers sitemap pages, and links OpenGSC automatically when available. GSC is optional.</p>
+</section>
+{% endblock %}

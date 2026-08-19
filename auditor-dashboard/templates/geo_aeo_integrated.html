@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · GEO / AEO{% endblock %}
+{% block content %}
+<div class="heading"><div><h1>GEO / AEO</h1><p>Structured audit data for {{ site.domain }}.</p></div>
+<div class="geo-actions"><form method="post" action="{{ url_for('geo_aeo_run_domain', domain=site.domain) }}"><button class="primary">Run full audit</button></form>
+{% if latest_run %}<a class="button" href="{{ url_for('geo_aeo_report', domain=site.domain, run_id=latest_run.id) }}">Report</a>{% endif %}</div></div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+{% if latest_run %}
+<div class="metric-grid">
+<div class="metric-card"><span>Status</span><strong>{{ latest_run.status }}</strong></div>
+<div class="metric-card"><span>Pages</span><strong>{{ summary.pages_audited or 0 }}</strong></div>
+<div class="metric-card"><span>GEO</span><strong>{{ summary.geo_score if summary.geo_score is not none else "—" }}</strong></div>
+<div class="metric-card"><span>AEO</span><strong>{{ summary.aeo_score if summary.aeo_score is not none else "—" }}</strong></div>
+<div class="metric-card"><span>Combined</span><strong>{{ summary.combined_score if summary.combined_score is not none else "—" }}</strong></div>
+</div>
+{% else %}<section class="panel"><p>No structured GEO/AEO audit has been stored yet.</p></section>{% endif %}
+<section class="panel"><h2>Pages</h2><div class="table-wrap"><table><thead><tr><th>Page</th><th>GEO</th><th>AEO</th><th>Combined</th><th>Fail</th><th>Partial</th></tr></thead><tbody>
+{% for p in page_rows %}<tr><td><a href="{{ url_for('page_workspace', domain=site.domain, page_id=p.page_id) }}">{{ p.path }}</a></td><td>{{ p.geo_score }}</td><td>{{ p.aeo_score }}</td><td>{{ p.combined_score }}</td><td>{{ p.fail_count }}</td><td>{{ p.partial_count }}</td></tr>
+{% else %}<tr><td colspan="6">No audited pages yet.</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="panel"><h2>Current priority signals</h2><div class="table-wrap"><table><thead><tr><th>Page</th><th>Family</th><th>Signal</th><th>Observed</th><th>Severity</th><th>Workflow</th><th>Priority</th><th>Note</th></tr></thead><tbody>
+{% for s in priority_signals %}<tr><td>{{ s.path }}</td><td>{{ s.family }}</td><td>{{ s.title }}<div class="signal-small">{{ s.category }}</div></td><td>{{ s.observed_status }}</td><td>{{ s.severity }}</td><td>{{ s.workflow_status }}</td><td>{{ s.priority }}</td><td>{{ s.user_note }}</td></tr>
+{% else %}<tr><td colspan="8">No current priority signals.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

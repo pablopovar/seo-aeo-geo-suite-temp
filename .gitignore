@@ -1,0 +1,49 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+.next/
+
+# Databases / runtime data
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Logs
+*.log
+logs/
+
+# Generated reports / artifacts
+reports/*
+!reports/.gitkeep
+
+# Backups
+*.bak
+*.bak-*
+*.backup
+*.orig
+*~
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Suite environment
+.env
+*.env
+!.env.dist
+
+# Local backups
+*.bak
+*.bak-*

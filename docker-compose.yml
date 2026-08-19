@@ -1,0 +1,47 @@
+services:
+  seo-suite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aeo-geo-seo-suite
+    restart: unless-stopped
+
+    # Reuse the existing OpenGSC OAuth credentials without copying secrets
+    # into the image.
+    env_file:
+      - ./.env
+
+    environment:
+      # OpenGSC
+      DATABASE_URL: "file:/suite/data/opengsc/prod.db"
+      NEXTAUTH_URL: "http://localhost:4017"
+
+      # Dashboard -> local processes in this same container.
+      SEO_DB: "/suite/data/opengsc/prod.db"
+      RESEARCH_DB: "/suite/data/dashboard/research.db"
+      REPORTS_DIR: "/suite/reports"
+      AEO_AUDITOR_URL: "http://127.0.0.1:4019"
+      AEO_AUDIT_COMMAND: ""
+      DATAFORSEO_LOGIN: ${DATAFORSEO_LOGIN}
+      DATAFORSEO_PASSWORD: ${DATAFORSEO_PASSWORD}
+      DATAFORSEO_KILL_SWITCH: "0"
+
+    ports:
+      - "4017:4017"   # OpenGSC
+      - "4018:4018"   # Unified dashboard
+      - "4019:4019"   # GEO/AEO auditor
+
+    volumes:
+      # Preserve the databases already created by the old child Compose stacks.
+      - opengsc-data:/suite/data/opengsc
+      - dashboard-data:/suite/data/dashboard
+      - ./reports:/suite/reports
+
+volumes:
+  opengsc-data:
+    external: true
+    name: ${OPENGSC_DATA_VOLUME:-auditor-seo-repo_opengsc-data}
+
+  dashboard-data:
+    external: true
+    name: ${DASHBOARD_DATA_VOLUME:-auditor-dashboard_dashboard-data}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · {{ keyword }}{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <h1>{{ keyword }}</h1>
+    <p>Keyword workspace for {{ site.domain }}.</p>
+  </div>
+  <a class="button" href="javascript:history.back()">← Back</a>
+</div>
+
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+
+<div class="keyword-workspace-grid">
+  <section class="panel">
+    <h2>Ranking</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Landing page</th><th>Latest position</th><th>Impressions</th><th>Clicks</th></tr></thead>
+        <tbody>
+        {% for r in rankings %}
+          <tr>
+            <td>{% if r.page_id %}<a href="{{ url_for('page_workspace', domain=site.domain, page_id=r.page_id) }}">{{ r.path }}</a>{% else %}{{ r.page }}{% endif %}</td>
+            <td>{{ "%.1f"|format(r.latest_position) if r.latest_position is not none else "—" }}</td>
+            <td>{{ "{:,.0f}".format(r.impressions or 0) }}</td>
+            <td>{{ "{:,.0f}".format(r.clicks or 0) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4">No GSC ranking observation for this keyword.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Wanted Target</h2>
+    <p class="research-help">Ranking landing page and Wanted target page are independent.</p>
+    <form method="post" action="{{ url_for('keyword_wanted_set', domain=site.domain) }}" class="keyword-wanted-form">
+      <input type="hidden" name="keyword" value="{{ keyword }}">
+      <select name="page_id">
+        <option value="">Unassigned</option>
+        {% for p in pages %}
+        <option value="{{ p.id }}" {% if wanted and wanted.page_id == p.id %}selected{% endif %}>{{ p.path }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="primary">{% if wanted %}Update Wanted page{% else %}Make Wanted{% endif %}</button>
+    </form>
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Keyword Tags</h2>
+  <div class="taxonomy-current-tags">
+    {% for tag in tags %}<span class="keyword-tag">{{ tag.name }}</span>{% else %}<span class="keyword-untagged">Untagged</span>{% endfor %}
+  </div>
+  <form method="post" action="{{ url_for('keyword_tag_change', domain=site.domain) }}" class="taxonomy-form">
+    <input type="hidden" name="keyword" value="{{ keyword }}">
+    <select name="tag_id">
+      <option value="">Choose existing tag…</option>
+      {% for t in all_keyword_tags %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+    </select>
+    <input type="text" name="new_tag" placeholder="or new keyword tag">
+    <button type="submit" name="action" value="add">Add tag</button>
+    <button type="submit" name="action" value="remove">Remove tag</button>
+  </form>
+</section>
+
+<section class="panel page-note-panel">
+  <h2>Keyword Note</h2>
+  <p class="research-help">One persistent note for this keyword.</p>
+  <form method="post" action="{{ url_for('keyword_note_page_save', domain=site.domain) }}">
+    <input type="hidden" name="keyword" value="{{ keyword }}">
+    <textarea name="content" class="page-note-textarea" placeholder="Notes for this keyword...">{{ note }}</textarea>
+    <div class="page-note-actions"><button type="submit" class="primary">Save note</button></div>
+  </form>
+</section>
+{% endblock %}

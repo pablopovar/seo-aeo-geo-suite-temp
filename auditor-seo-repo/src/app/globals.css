@@ -1,0 +1,668 @@
+/*
+ * Font stack: SF Pro on Apple devices via system-ui/-apple-system.
+ * Inter (Google Fonts) is the closest open-source substitute on non-Apple
+ * platforms and is already loaded — it kicks in automatically.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+/* ── Dark theme — Apple Design Language ────────────────────────────────────── */
+/*
+ * Apple Dark Mode palette (macOS / iOS system colors).
+ * Pure black canvas (#000000) — Apple's preferred dark surface.
+ * Elevated layers: #1c1c1e → #2c2c2e → #3a3a3c (system grouped backgrounds).
+ * Interactive: #2997ff (Apple on-dark Action Blue — brighter than light mode).
+ * System colors: green #34c759 / red #ff453a / orange #ff9f0a.
+ */
+:root,
+[data-theme="dark"] {
+  /* Surfaces — Apple layering system */
+  --color-bg:           #000000;   /* Dark Void — the canvas */
+  --color-card:         #1c1c1e;   /* System dark grouped surface */
+  --color-card-hover:   #2c2c2e;   /* System dark secondary */
+  --color-bg-secondary: #1c1c1e;
+
+  /* Borders — Apple dark hairline */
+  --color-border:        #3a3a3c;  /* Apple dark separator */
+  --color-border-soft:   rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --color-text-primary:  #f5f5f7;  /* Near-white — Apple dark primary */
+  --color-text-secondary:#a1a1a6;  /* Apple dark secondary */
+  --color-text-tertiary: #6e6e73;  /* Apple dark tertiary */
+
+  /* Action Blue — on-dark variant is brighter */
+  --color-accent-blue:        #2997ff;  /* Apple on-dark interactive */
+  --color-accent-blue-dark:   #1a7fd4;  /* Press state */
+  --color-accent-blue-bright: #2997ff;
+
+  /* System colors — Apple's exact dark mode values */
+  --color-accent-purple: #bf5af2;  /* Apple System Purple */
+  --color-accent-green:  #34c759;  /* Apple System Green */
+  --color-accent-red:    #ff453a;  /* Apple System Red */
+  --color-accent-orange: #ff9f0a;  /* Apple System Orange */
+
+  --color-success: #34c759;
+  --color-danger:  #ff453a;
+  --color-warning: #ff9f0a;
+
+  /* Radius — same token set as light */
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* Shadow — Apple dark: almost nothing; only inner glow at card border */
+  --shadow-card:    none;
+  --shadow-product: 0 3px 40px 6px rgba(0, 0, 0, 0.60);
+  --shadow-frosted: 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Page layout — driven by the Layout toggle (LayoutContext sets these on :root).
+     Defaults here = "wide" so the first paint (before the provider's effect runs) matches the
+     default app state and there is no flash of the narrower layout. */
+  --page-max-width: 100%;
+  --page-padding:   32px;
+}
+
+/* Privacy blur — off by default (no data-privacy attribute, or "off"). PrivacyContext flips
+   data-privacy to "on" on <html>, and only then does the rule below fire. Putting the class on a
+   container (table / wrapper div) and targeting the value-bearing leaves (td, a, .metric-value)
+   keeps the table structure, borders, zebra striping and action buttons sharp while obscuring just
+   the sensitive values — the same look the hand-written blurStyle sites use, but driven entirely
+   from CSS with no per-component React subscription. New tool = add .privacy-sensitive to its
+   table; the toggle handles the rest. */
+:root[data-privacy="on"] .privacy-sensitive td,
+:root[data-privacy="on"] .privacy-sensitive a,
+:root[data-privacy="on"] .privacy-sensitive .metric-value,
+:root[data-privacy="on"] .privacy-sensitive .metric-chip {
+  filter: blur(5px);
+  user-select: none;
+  transition: filter 0.25s ease;
+}
+
+/* For grid-div "tables" (cannibalization, striking, decay) there are no <td> elements — values
+   live in plain <div>s, so the leaf-targeting rule above wouldn't reach them. Marking the whole
+   rows-wrapper with .privacy-blur-all blurs the entire block. The structure softens slightly
+   alongside the values, which is an acceptable trade for these dense lists vs. tagging every
+   numeric div with a class by hand. */
+:root[data-privacy="on"] .privacy-blur-all {
+  filter: blur(5px);
+  user-select: none;
+  transition: filter 0.25s ease;
+}
+
+/* ── Light theme — Apple Design Language ───────────────────────────────────── */
+/*
+ * Surface palette matches Apple's exact parchment/white system.
+ * Single accent: Action Blue #0066cc (Apple's universal "click me" signal).
+ * Text: Near-Black Ink #1d1d1f (Apple's preferred alternative to pure black).
+ * Elevation: hairline borders only — no shadows on cards or buttons.
+ */
+[data-theme="light"] {
+  /* Surfaces */
+  --color-bg:            #f5f5f7;   /* Apple Parchment — the page canvas */
+  --color-card:          #ffffff;   /* Pure White — utility cards */
+  --color-card-hover:    #fafafc;   /* Pearl — very subtle lift on hover */
+  --color-bg-secondary:  #f5f5f7;   /* Parchment again — secondary areas */
+
+  /* Borders — hairline only, Apple-style */
+  --color-border:        #d2d2d7;   /* Apple Hairline */
+  --color-border-soft:   rgba(0, 0, 0, 0.08); /* Soft ring for ghost buttons */
+
+  /* Text — Apple Near-Black system */
+  --color-text-primary:  #1d1d1f;   /* Near-Black Ink */
+  --color-text-secondary:#6e6e73;   /* Apple secondary copy */
+  --color-text-tertiary: #a1a1a6;   /* Fine print / disabled */
+
+  /* Action Blue — Apple's single interactive accent */
+  --color-accent-blue:   #0066cc;   /* Action Blue — links, pills, focus */
+  --color-accent-blue-dark: #0051a3;/* Press/active state */
+  --color-accent-blue-bright: #2997ff; /* On-dark surfaces only */
+
+  /* Semantic — kept functional, shifted slightly toward Apple palette */
+  --color-accent-purple: #6e3acf;
+  --color-accent-green:  #1d8348;
+  --color-accent-red:    #c0392b;
+  --color-accent-orange: #b7600a;
+
+  --color-success: #1d8348;
+  --color-danger:  #c0392b;
+  --color-warning: #b7600a;
+
+  /* Radius — Apple's rounded.lg for cards, keeps sm/md for compact UI */
+  --radius-sm: 8px;    /* compact utility buttons */
+  --radius-md: 11px;   /* pearl capsule buttons */
+  --radius-lg: 18px;   /* utility cards (Apple rounded.lg) */
+  --radius-xl: 20px;
+  --radius-pill: 9999px; /* primary pill CTAs — the Apple action signal */
+
+  /*
+   * Shadow philosophy (Apple):
+   *   - Cards use a 1px hairline border — no shadow.
+   *   - The only "real" drop-shadow is for product imagery.
+   *   - Frosted-glass blur for sticky/floating bars.
+   */
+  --shadow-card:    none;
+  --shadow-product: 0 3px 30px 5px rgba(0, 0, 0, 0.10); /* imagery only */
+  --shadow-frosted: 0 1px 0 rgba(0, 0, 0, 0.08);         /* sticky nav hairline */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /*
+   * SF Pro on Apple devices (via system-ui / -apple-system),
+   * Inter on everything else — same visual weight, no FOUT.
+   */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-size: 17px;         /* Apple's body copy size */
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Theme transition on key elements */
+.card, header, aside, main, nav, section, footer {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Layout Utilities */
+.main-content {
+  /* Vertical padding is fixed (28px top/bottom); horizontal follows the Layout toggle. */
+  padding: 28px var(--page-padding);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Typography Utilities */
+/*
+ * Apple negative letter-spacing on large type — avoids open gaps between
+ * letters at display sizes. Values mirror Apple.com headline tracking.
+ */
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.374px;  /* Apple headline tracking */
+}
+
+.title-sm {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;  /* Apple display tracking */
+}
+
+/* Card Component */
+.card {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  /* Theme-aware hover: dark mode uses slightly lighter border,
+     light mode uses Apple's interactive Action Blue as a hairline ring. */
+  border-color: var(--color-accent-blue);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* Badges / Pills */
+/*
+ * Apple pill pattern: inactive = ghost on surface, active = solid accent blue.
+ * Avoids white/dark inversion hack — both themes use Action Blue for active.
+ */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  background-color: var(--color-border-soft);
+  border: 1px solid transparent;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  color: var(--color-text-secondary);
+}
+
+.pill:hover {
+  background-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.pill.active {
+  background-color: var(--color-accent-blue);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* Metric Change Indicators */
+.change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.change.positive {
+  color: var(--color-success);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.change.negative {
+  color: var(--color-danger);
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filters-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Grids */
+.dashboard-grid-1 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.dashboard-grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes drPulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* Site-card DR chip while the dashboard-wide backfill hasn't reached this domain yet — see
+   app/page.tsx. Distinguishes "still checking" from "checked, nothing found" (which shows
+   no chip at all), so cards popping in over the first minute or two after enabling a new
+   Ahrefs key don't read as some sites being broken. */
+.dr-pulse {
+  animation: drPulse 1.4s ease-in-out infinite;
+}
+
+/* ── SEO Tools shared primitives ───────────────────────────────────────────────
+ * Same look as the SectionCard pattern used across the app (settings, etc.):
+ * hairline border, 12px radius, no shadow. Centralised here so theme/geometry
+ * edits propagate to the whole SEO Tools tab automatically. */
+.panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.tool-input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+.tool-input:focus {
+  border-color: var(--color-accent-blue);
+}
+
+.tool-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tool-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+/* ── Apple-style dropdown menu items ───────────────────────────────────────── */
+/*
+ * .menu-item: ghost button row used in the user dropdown.
+ * .menu-item-active: the toggled-on state (green) — hover is suppressed.
+ * Uses border-soft variable: rgba(0,0,0,0.08) in light, rgba(255,255,255,0.06) in dark.
+ */
+.menu-item {
+  transition: background 0.15s, color 0.15s;
+}
+.menu-item:hover:not(.menu-item-active) {
+  background: var(--color-border-soft) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* ── Settings sidebar nav buttons ──────────────────────────────────────────── */
+/*
+ * .nav-btn: sidebar navigation item.
+ * .nav-btn.active: selected section — Apple Action Blue pill.
+ */
+.nav-btn {
+  transition: background 0.15s, color 0.15s, font-weight 0.1s;
+}
+.nav-btn:hover:not(.active) {
+  background: var(--color-border-soft) !important;
+  color: var(--color-text-primary) !important;
+}
+.nav-btn.active {
+  background: var(--color-accent-blue) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+.nav-btn.active svg,
+.nav-btn.active [data-lucide] {
+  color: #ffffff !important;
+}
+
+/* Autofill override — theme-aware via CSS custom properties
+   (Chrome ignores var() in box-shadow for autofill, so we split by theme) */
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+  caret-color: var(--color-text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+[data-theme="dark"] input:-webkit-autofill {
+  box-shadow: 0 0 0 30px #1c1c1e inset !important;
+  -webkit-text-fill-color: #f5f5f7 !important;
+}
+
+[data-theme="light"] input:-webkit-autofill {
+  box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #1d1d1f !important;
+}
+
+/* ── Metrics primitives (Ahrefs/Semrush layer) ─────────────────────────────────
+ * Three shapes repeat across every metrics surface — the weights toolbar, the
+ * backlink profile, the competitor gap, the Indexer domain chip. They live here
+ * rather than as inline styles in each component so a theme or geometry change
+ * reaches all of them, which is the whole reason .panel and .tool-input exist. */
+
+/* .tool-input sizes to 100% by design (stacked forms). Toolbars need the natural
+   width of their content instead, so this is a width-only modifier — everything
+   else about the control stays identical to the form version. */
+.tool-input.inline {
+  width: auto;
+}
+
+/* Compact numeric badge: DR 72, RD 1.5k, units, source. Same hairline vocabulary
+   as .pill but tighter, for use inside table cells and next to headings. */
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  background-color: var(--color-border-soft);
+  color: var(--color-text-secondary);
+}
+
+/* The one action in each metrics surface that spends money. Deliberately distinct
+   from .pill (a filter) and from the app's dark primary button (a safe action):
+   an amber outline reads as "this costs something" before it is pressed. */
+.metric-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-accent-orange);
+  background: transparent;
+  color: var(--color-accent-orange);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.metric-action:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-accent-orange) 12%, transparent);
+}
+.metric-action:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+/* Cost estimate shown next to .metric-action. Tertiary on purpose — it must be
+   readable before the click and must not compete with the button itself. */
+.metric-cost {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* Archive — properties Search Console no longer returns.
+ *
+ * Deliberately not rendered as .card like a live site: these are rows, not dashboards.
+ * A dead domain has no sparkline worth drawing, and giving it the same visual weight as
+ * a working site is what made replaced domains feel like they were "still there".
+ * Muted by default, full contrast on hover, so the group reads as inert until touched. */
+.archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.archive-toggle:hover {
+  border-color: var(--color-border-soft);
+  color: var(--color-text-primary);
+}
+
+/* Pill badge for the count — sits at the right edge so the number is impossible
+   to miss even when the section is collapsed and the rows are hidden. */
+.archive-count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 2px 8px;
+  border-radius: var(--color-pill, var(--radius-pill));
+  background: color-mix(in srgb, var(--color-text-tertiary) 24%, transparent);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.archive-caret {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.archive-caret.open { transform: rotate(90deg); }
+
+.archive-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  opacity: 0.75;
+}
+
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.archive-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-secondary);
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+.archive-row:hover { border-color: var(--color-border-soft); }
+.archive-row.busy { opacity: 0.5; pointer-events: none; }
+
+.archive-domain {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.archive-date {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.archive-btn {
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.archive-btn:hover:not(:disabled) {
+  border-color: var(--color-accent-blue);
+  background-color: color-mix(in srgb, var(--color-accent-blue) 10%, transparent);
+}
+.archive-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+/* Destructive and irreversible — cascades to metrics, audits, keywords, backlinks.
+   Red only on hover so the row does not read as an error at rest. */
+.archive-btn.danger { color: var(--color-danger); }
+.archive-btn.danger:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+
+/* ── Two-column tool layouts (SEO Tools → Content Operations, Source Audit) ───
+   A narrow list next to a wide detail pane, collapsing to one column on tablets.
+   Same 14px gutter and breakpoint as the rest of the tool pages. */
+.content-ops-grid,
+.source-audit-grid {
+  display: grid;
+  gap: 14px;
+  align-items: start;
+}
+.content-ops-grid { grid-template-columns: minmax(270px, 0.8fr) minmax(420px, 1.6fr); }
+.source-audit-grid { grid-template-columns: minmax(250px, 0.72fr) minmax(420px, 1.8fr); }
+
+@media (max-width: 900px) {
+  .content-ops-grid,
+  .source-audit-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Competitor scanner (/crawler) ────────────────────────────────────────────
+   History beside the report, same gutter and breakpoint as the other tool pages. */
+.crawler-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.6fr) minmax(420px, 2fr);
+  gap: 14px;
+  align-items: start;
+}
+/* Two per row, not four. Each card is a label/value table, and at a quarter of the width the
+   values wrap after every second word — "WordPre ss" — which reads as broken rather than dense. */
+.crawler-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .crawler-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .crawler-grid { grid-template-columns: 1fr; }
+}

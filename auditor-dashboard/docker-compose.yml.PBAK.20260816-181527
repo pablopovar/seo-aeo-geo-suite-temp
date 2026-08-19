@@ -1,0 +1,24 @@
+services:
+  dashboard:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-4018}:4018"
+    environment:
+      PORT: "4018"
+      SEO_DB: "/data/seo/prod.db"
+      REPORTS_DIR: "/data/reports"
+      RESEARCH_DB: "/data/dashboard/research.db"
+      AEO_AUDITOR_URL: "${AEO_AUDITOR_URL:-http://host.docker.internal:8000}"
+      AEO_AUDIT_COMMAND: "${AEO_AUDIT_COMMAND:-}"
+    volumes:
+  dashboard-data:
+      - auditor-seo-repo_opengsc-data:/data/seo:ro
+      - ../reports:/data/reports:ro
+      - dashboard-data:/data/dashboard
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  auditor-seo-repo_opengsc-data:
+    external: true

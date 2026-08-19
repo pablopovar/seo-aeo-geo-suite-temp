@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}SEO Crawl — {{ site.domain }}{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <h1>SEO Crawl</h1>
+    <p>{{ site.domain }}</p>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="report-scope-actions">
+    <a class="button primary" href="{{ url_for('ten_page_select', domain=site.domain) }}">10-Page Report</a>
+    <span>Automatically propose 10 pages, review the selection, then run exactly those pages.</span>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('seo_crawl_run', domain=site.domain) }}" class="crawl-run-form">
+    <label>Page cap
+      <input type="number" name="page_cap" min="1" max="5000" value="100">
+    </label>
+    <label>Delay (ms)
+      <input type="number" name="delay_ms" min="0" max="10000" value="250">
+    </label>
+    <label>
+      <input type="checkbox" name="obey_robots" value="1" checked>
+      Obey robots.txt
+    </label>
+    <button type="submit" class="primary">Run Crawl</button>
+  </form>
+  <p class="research-help">Sitemap-first, same-domain, sequential crawler. Internal links discovered during the crawl are added to the queue.</p>
+</section>
+
+{% if latest %}
+<section class="panel crawl-summary">
+  <div class="metric"><strong>Status</strong><span>{{ latest.status }}</span></div>
+  <div class="metric"><strong>Discovered</strong><span>{{ latest.pages_discovered }}</span></div>
+  <div class="metric"><strong>Crawled</strong><span>{{ latest.pages_crawled }}</span></div>
+  <div class="metric"><strong>Failed</strong><span>{{ latest.pages_failed }}</span></div>
+  <div class="metric"><strong>Started</strong><span>{{ latest.started_at or '—' }}</span></div>
+  <div class="metric"><strong>Completed</strong><span>{{ latest.completed_at or '—' }}</span></div>
+</section>
+
+{% if issues %}
+<section class="panel">
+  <h2>Issues</h2>
+  <table>
+    <thead><tr><th>Severity</th><th>Issue</th><th>Pages</th></tr></thead>
+    <tbody>
+    {% for issue in issues %}
+      <tr><td>{{ issue.severity }}</td><td>{{ issue.title }}</td><td>{{ issue.count }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Pages</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>URL</th><th>Status</th><th>Title</th><th>H1</th><th>Words</th>
+        <th>Internal</th><th>External</th><th>Images / missing alt</th>
+        <th>Schema</th><th>Indexable</th><th>ms</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in pages %}
+      <tr>
+        <td><a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.path or p.url }}</a></td>
+        <td>{{ p.status_code or '—' }}</td>
+        <td>{{ p.title or '—' }}</td>
+        <td>
+          {% set h1s = p.h1_json|default('[]') %}
+          {{ h1s }}
+        </td>
+        <td>{{ p.word_count or 0 }}</td>
+        <td>{{ p.internal_links }}</td>
+        <td>{{ p.external_links }}</td>
+        <td>{{ p.image_count }} / {{ p.images_missing_alt }}</td>
+        <td>{{ p.schema_types_json or '[]' }}</td>
+        <td>{% if p.indexable %}yes{% else %}no{% endif %}</td>
+        <td>{{ p.response_ms or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endif %}
+
+{% if runs %}
+<section class="panel">
+  <h2>Recent Crawl Runs</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th><th>Crawled</th><th>Failed</th><th>Started</th><th>Completed</th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      <tr>
+        <td>{{ r.id }}</td><td>{{ r.status }}</td><td>{{ r.pages_crawled }}</td>
+        <td>{{ r.pages_failed }}</td><td>{{ r.started_at or '—' }}</td><td>{{ r.completed_at or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if latest and latest.status in ['queued','running'] %}
+<script>
+setTimeout(() => location.reload(), 2500);
+</script>
+{% endif %}
+{% endblock %}

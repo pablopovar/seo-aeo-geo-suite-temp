@@ -1,0 +1,60 @@
+{
+  "name": "app-temp",
+  "version": "1.4.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.27.7": true,
+    "prisma@7.9.1": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.11.1": true,
+    "@prisma/engines@7.9.1": true
+  },
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "create-owner": "node scripts/create-owner.mjs",
+    "set-password": "node scripts/set-password.mjs",
+    "lint": "next lint",
+    "check:i18n": "node scripts/check-keys.js",
+    "check:release": "node scripts/check-release.js",
+    "test:unit": "tsx --test src/lib/team/roles.test.ts src/lib/scanner/fingerprints.test.ts src/lib/security/safeFetch.test.ts src/lib/audit/verification.test.ts src/lib/audit/rules.test.ts src/lib/cannibalization/relatedIntent.test.ts src/lib/outreach/types.test.ts src/lib/contentOps/types.test.ts src/lib/contentOps/outcomeMath.test.ts src/lib/sitemap/inventory.test.ts src/lib/sitemap/metadata.test.ts src/lib/sitemap/diff.test.ts src/lib/sourceAudit/rules.test.ts src/lib/mcp/outlineShape.test.ts",
+    "check": "npm run check:i18n && npm run check:release && npm run test:unit",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.7",
+    "@prisma/adapter-better-sqlite3": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "dotenv": "^16.0.0",
+    "bcryptjs": "^3.0.3",
+    "googleapis": "^171.4.0",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.12",
+    "next-auth": "^4.24.14",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "prisma": "^7.0.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "sql.js": "^1.13.0"
+  }
+}

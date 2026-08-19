@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · {{ page.path }}{% endblock %}
+{% block content %}
+<div class="heading">
+  <div><h1>{{ page.path }}</h1><p><a href="{{ page.url }}" target="_blank" rel="noopener">{{ page.url }}</a></p></div>
+  <a class="button" href="{{ url_for('pages', domain=site.domain) }}">← Pages</a>
+</div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+<div class="page-workspace-grid">
+  <section class="panel">
+    <h2>Ranking Keywords <span class="muted-count">{{ ranking_rows|length }}</span></h2>
+    <div class="table-wrap"><table data-sortable><thead><tr><th data-sort="text">Keyword</th><th data-sort="number">Latest position</th><th data-sort="number">Impressions</th><th data-sort="number">Clicks</th></tr></thead><tbody>
+    {% for r in ranking_rows %}<tr><td>{{ r.keyword }}</td><td>{{ "%.1f"|format(r.latest_position) if r.latest_position is not none else "—" }}</td><td>{{ "{:,.0f}".format(r.impressions) }}</td><td>{{ "{:,.0f}".format(r.clicks) }}</td></tr>
+    {% else %}<tr><td colspan="4">No ranking keywords observed for this page.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <section class="panel">
+    <h2>Wanted Keywords <span class="muted-count">{{ wanted_rows|length }}</span></h2>
+    <div class="table-wrap"><table data-sortable><thead><tr><th data-sort="text">Keyword</th><th data-sort="number">Avg. monthly searches</th><th data-sort="text">Competition</th><th data-sort="text">Tags</th></tr></thead><tbody>
+    {% for r in wanted_rows %}<tr><td>{{ r.keyword }}</td><td>{{ "{:,}".format(r.avg_monthly_searches) if r.avg_monthly_searches is not none else "—" }}</td><td>{% if r.competition %}<span class="competition competition-{{ r.competition|lower }}">{{ r.competition }}</span>{% else %}—{% endif %}</td><td class="keyword-tags">{% if r.tags %}{% for tag in r.tags.split("||") %}<span class="keyword-tag">{{ tag }}</span>{% endfor %}{% else %}<span class="keyword-untagged">Untagged</span>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="4">No wanted keywords assigned to this page.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</div>
+
+<section class="panel page-add-wanted-panel">
+  <h2>Add Wanted Keyword</h2>
+  <form class="research-form page-wanted-add-form"
+        method="post"
+        action="{{ url_for('page_wanted_add', domain=site.domain, page_id=page.id) }}">
+    <input type="text" name="keyword" placeholder="New wanted keyword for this page" required>
+    <button type="submit" class="primary">Add</button>
+  </form>
+</section>
+
+<section class="panel page-note-panel">
+  <h2>Page Note</h2><p class="research-help">One persistent note for this page.</p>
+  <form method="post" action="{{ url_for('page_note_save', domain=site.domain, page_id=page.id) }}">
+    <textarea name="content" class="page-note-textarea" placeholder="Notes for this page...">{{ note }}</textarea>
+    <div class="page-note-actions"><button type="submit" class="primary">Save note</button></div>
+  </form>
+</section>
+{% endblock %}

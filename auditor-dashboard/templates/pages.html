@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} · Pages{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <h1>Pages</h1>
+    <p>All discovered pages for {{ site.domain }}, including pages with no ranking keywords.</p>
+  </div>
+  <form method="post" action="{{ url_for('pages_sync', domain=site.domain) }}">
+    <button class="primary" type="submit">Refresh sitemap</button>
+  </form>
+</div>
+{% if message %}<div class="notice">{{ message }}</div>{% endif %}
+<div class="research-list-head">
+  <form method="get" class="search research-search">
+    <input name="q" value="{{ q }}" placeholder="Search pages">
+    <button type="submit">Search</button>
+    {% if q %}<a class="button" href="{{ url_for('pages', domain=site.domain) }}">Clear</a>{% endif %}
+  </form>
+  <div class="research-count">{{ rows|length }} shown · {{ total }} discovered pages</div>
+</div>
+<div class="table-wrap">
+<table data-sortable>
+  <thead><tr><th data-sort="text">Page</th><th data-sort="number">Ranking keywords</th><th data-sort="number">Wanted keywords</th><th data-sort="text">Note</th><th>Open</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td><div><strong>{{ r.path }}</strong></div><div class="page-url-small">{{ r.url }}</div></td>
+      <td>{{ r.ranking_count }}</td><td>{{ r.wanted_count }}</td><td>{{ "Yes" if r.has_note else "—" }}</td>
+      <td><a class="button" href="{{ url_for('page_workspace', domain=site.domain, page_id=r.id) }}">View</a></td>
+    </tr>
+  {% else %}<tr><td colspan="5">No pages discovered yet.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
