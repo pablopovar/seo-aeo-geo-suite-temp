@@ -25,7 +25,7 @@
 <nav class="nav">
   <a class="{% if request.endpoint == 'overview' %}active{% endif %}" href="{{ url_for('overview', domain=site.domain) }}">Overview</a>
   <a class="{% if request.endpoint in ['pages','page'] %}active{% endif %}" href="{{ url_for('pages', domain=site.domain) }}">Pages</a>
-  <a class="{% if request.endpoint == 'reports' %}active{% endif %}" href="{{ url_for('reports', domain=site.domain) }}">Reports</a>
+  <a class="{% if request.endpoint in ['reports','report_session_view','report_session_pdf'] %}active{% endif %}" href="{{ url_for('reports', domain=site.domain) }}">Reports</a>
   <details class="nav-group keyword-nav-group" {% if request.endpoint in ['keywords_dashboard','keywords','wanted','research','keyword_workspace'] %}open{% endif %}>
   <summary class="{% if request.endpoint in ['keywords_dashboard','keywords','wanted','research','keyword_workspace'] %}active{% endif %}">Keywords</summary>
   <div class="nav-group-menu">

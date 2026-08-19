@@ -2,14 +2,37 @@
 {% block title %}{{ site.domain }} · Reports{% endblock %}
 {% block content %}
 <div class="heading">
-  <div><h1>Reports</h1><p>Run, inspect, and export GEO/AEO reports.</p></div>
-  <form method="post" action="{{ url_for('run_audit', domain=site.domain) }}">
-    <button class="primary">Run GEO/AEO Audit</button>
-  </form>
+  <div><h1>Reports</h1><p>Create a frozen, web-first audit report and export it to PDF when needed.</p></div>
+  <div class="heading-actions">
+    <form method="post" action="{{ url_for('generate_full_web_report', domain=site.domain) }}">
+      <button class="primary">Generate Full Report</button>
+    </form>
+    <form method="post" action="{{ url_for('run_audit', domain=site.domain) }}">
+      <button>Run GEO/AEO Audit</button>
+    </form>
+  </div>
 </div>
 
-<div class="panel"><p>GEO/AEO audits run directly inside the audit application.</p></div>
+<div class="panel">
+  <p><strong>Web-first report:</strong> each report is a frozen session with its own URL. It includes the audit evidence and a prioritized "what to do" layer. Export PDF from inside the report.</p>
+</div>
 
+
+{% if report_sessions %}
+<h2>Recent web reports</h2>
+<ul class="reports large">
+{% for r in report_sessions %}
+  <li>
+    <a href="{{ url_for('report_session_view', domain=site.domain, report_id=r.id) }}">
+      {{ site.domain }} | {{ r.created_at }} | <code>{{ r.id }}</code>
+    </a>
+    <a class="button small" href="{{ url_for('report_session_view', domain=site.domain, report_id=r.id) }}">Open</a>
+  </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<h2>Legacy exported files</h2>
 <ul class="reports large">
 {% for r in reports %}
   <li>

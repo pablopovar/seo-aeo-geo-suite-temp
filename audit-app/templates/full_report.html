@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}{{ site.domain }} - Full Audit Report{% endblock %}
+{% block content %}
+
+<div class="report-hero">
+  <div>
+    <div class="report-kicker">SEO / GEO / AEO DOMAIN AUDIT</div>
+    <h1>{{ site.domain }}</h1>
+    <p>Actionable audit report combining search visibility, technical crawl evidence, and GEO/AEO readiness.</p>
+    <div class="report-meta">
+      <span>Report <code>{{ report_session.id }}</code></span>
+      <span>Created {{ report_session.created_at }}</span>
+      {% if report.audit %}
+      <span>Audit run #{{ report.audit.id }} - {{ report.audit.status }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="heading-actions">
+    <a class="button primary" href="{{ url_for('report_session_pdf', domain=site.domain, report_id=report_session.id) }}">Export PDF</a>
+    <a class="button" href="{{ url_for('reports', domain=site.domain) }}">Reports</a>
+  </div>
+</div>
+
+{% set seo = report.seo or {} %}
+{% set a = report.audit_summary or {} %}
+{% set crawl = report.crawl or {} %}
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">01</div>
+      <h2>Executive Summary <span class="info-tip" tabindex="0" data-tooltip="High-level indicators from the latest stored GSC discovery, technical crawl, and GEO/AEO audit.">?</span></h2>
+    </div>
+  </div>
+
+  <div class="report-score-grid">
+    <div class="report-score-card">
+      <span>Observed keywords <span class="info-tip" tabindex="0" data-tooltip="Distinct Google Search Console queries found in the stored keyword discovery dataset.">?</span></span>
+      <strong>{{ seo.keywords if seo else '—' }}</strong>
+    </div>
+    <div class="report-score-card">
+      <span>Ranking pages <span class="info-tip" tabindex="0" data-tooltip="Distinct landing pages that received GSC query impressions in the stored discovery period.">?</span></span>
+      <strong>{{ seo.pages if seo else '—' }}</strong>
+    </div>
+    <div class="report-score-card score-geo">
+      <span>GEO <span class="info-tip" tabindex="0" data-tooltip="Generative Engine Optimization readiness score from the latest structured page audit.">?</span></span>
+      <strong>{{ a.geo_score if a else '—' }}</strong>
+    </div>
+    <div class="report-score-card score-aeo">
+      <span>AEO <span class="info-tip" tabindex="0" data-tooltip="Answer Engine Optimization readiness score from the latest structured page audit.">?</span></span>
+      <strong>{{ a.aeo_score if a else '—' }}</strong>
+    </div>
+    <div class="report-score-card">
+      <span>Combined <span class="info-tip" tabindex="0" data-tooltip="Current combined GEO/AEO score. Separate SEO and AIO score families will be added later.">?</span></span>
+      <strong>{{ a.combined_score if a else '—' }}</strong>
+    </div>
+  </div>
+
+  <div class="report-summary-grid">
+    <div class="panel">
+      <h3>Search visibility</h3>
+      {% if seo %}
+      <p><strong>{{ seo.impressions or 0 }}</strong> impressions and <strong>{{ seo.clicks or 0 }}</strong> clicks across the stored discovery period.</p>
+      <p>CTR {{ seo.ctr }}% - observed position range {{ seo.best_position or '—' }}-{{ seo.worst_position or '—' }}.</p>
+      {% else %}<p>No GSC keyword discovery data is stored for this report.</p>{% endif %}
+    </div>
+    <div class="panel">
+      <h3>Technical crawl</h3>
+      {% if crawl %}
+      <p><strong>{{ crawl.pages_crawled or 0 }}</strong> pages crawled - <strong>{{ crawl.pages_failed or 0 }}</strong> failed.</p>
+      <p>Latest crawl status: <span class="status-badge status-{{ crawl.status|lower }}">{{ crawl.status }}</span></p>
+      {% else %}<p>No technical crawl is stored for this report.</p>{% endif %}
+    </div>
+    <div class="panel">
+      <h3>GEO / AEO</h3>
+      {% if a %}
+      <p><strong>{{ a.pages_audited }}</strong> pages audited.</p>
+      <p>{{ a.pass_count }} pass - {{ a.partial_count }} partial - {{ a.fail_count }} fail - {{ a.manual_count }} manual review.</p>
+      {% else %}<p>No GEO/AEO audit is stored for this report.</p>{% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">02</div>
+      <h2>What To Do Next <span class="info-tip" tabindex="0" data-tooltip="Actions are grouped from repeated audit findings so the report prioritizes work rather than simply listing failures.">?</span></h2>
+      <p>Highest-priority actions, grouped across affected pages.</p>
+    </div>
+  </div>
+
+  <div class="action-grid">
+    {% for action in report.priority_actions[:12] %}
+    <article class="action-card severity-{{ action.severity|lower }}">
+      <div class="action-card-top">
+        <span class="severity-badge severity-{{ action.severity|lower }}"><span class="cue-dot"></span>{{ action.severity }}</span>
+        <span class="family-badge">{{ action.family }}</span>
+      </div>
+      <h3>{{ action.title }}</h3>
+      <p class="action-impact">{{ action.page_count }} affected page{{ '' if action.page_count == 1 else 's' }} - {{ action.status_summary }}</p>
+      <div class="action-label">What to do</div>
+      <p class="action-recommendation">{{ action.recommendation or 'Review the underlying evidence and resolve the finding.' }}</p>
+      {% if action.evidence_examples %}
+      <details class="action-evidence">
+        <summary>Why this was flagged</summary>
+        {% for evidence in action.evidence_examples %}<p>{{ evidence }}</p>{% endfor %}
+      </details>
+      {% endif %}
+      <details class="action-pages">
+        <summary>Affected pages</summary>
+        <ul>{% for path in action.pages %}<li>{{ path }}</li>{% endfor %}</ul>
+      </details>
+    </article>
+    {% else %}
+    <div class="panel"><p>No priority GEO/AEO actions are available.</p></div>
+    {% endfor %}
+  </div>
+
+  {% if report.technical_actions %}
+  <h3>Technical SEO actions <span class="info-tip" tabindex="0" data-tooltip="Issues grouped from the latest technical crawler run.">?</span></h3>
+  <div class="table-wrap report-table">
+    <table>
+      <thead><tr><th>Priority</th><th>Issue</th><th>Affected pages</th><th>What to inspect</th></tr></thead>
+      <tbody>
+      {% for issue in report.technical_actions %}
+      <tr>
+        <td><span class="severity-badge severity-{{ issue.severity }}">{{ issue.severity|upper }}</span></td>
+        <td><strong>{{ issue.title }}</strong></td>
+        <td>{{ issue.page_count }}</td>
+        <td>{{ issue.details[0] if issue.details else 'Review the affected pages and correct the technical issue.' }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">03</div>
+      <h2>Organic Search Visibility <span class="info-tip" tabindex="0" data-tooltip="Observed GSC query-to-page visibility. A query may appear more than once when multiple landing pages rank for it.">?</span></h2>
+      {% if seo.first_date or seo.last_date %}<p>Stored discovery period: {{ seo.first_date or '?' }} to {{ seo.last_date or '?' }}</p>{% endif %}
+    </div>
+  </div>
+  {% if report.keywords %}
+  <div class="table-wrap report-table">
+    <table>
+      <thead><tr><th>Query</th><th>Landing page</th><th>Impressions</th><th>Clicks</th><th>Best</th><th>Latest</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for k in report.keywords %}
+      <tr>
+        <td><strong>{{ k.query }}</strong></td><td class="report-url">{{ k.page }}</td>
+        <td>{{ k.impressions }}</td><td>{{ k.clicks }}</td>
+        <td>{{ k.best_position or '—' }}</td><td>{{ k.latest_position or '—' }}</td>
+        <td><span class="status-badge status-neutral">{{ k.status or 'observed' }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel"><p>No observed keyword dataset is available.</p></div>{% endif %}
+</section>
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">04</div>
+      <h2>Technical SEO Crawl <span class="info-tip" tabindex="0" data-tooltip="Latest crawler evidence for response status, indexability, content depth, internal links, structured data, and response time.">?</span></h2>
+    </div>
+  </div>
+  {% if report.crawl_pages %}
+  <div class="table-wrap report-table">
+    <table>
+      <thead><tr><th>Page</th><th>HTTP</th><th>Indexable</th><th>Words</th><th>Internal links</th><th>Schema</th><th>ms</th></tr></thead>
+      <tbody>
+      {% for p in report.crawl_pages %}
+      <tr>
+        <td class="report-url">{{ p.path or p.url }}</td><td>{{ p.status_code }}</td>
+        <td>{% if p.indexable %}<span class="status-badge status-pass"><span class="cue-icon">✓</span> yes</span>{% else %}<span class="status-badge status-fail"><span class="cue-icon">!</span> no</span>{% endif %}</td>
+        <td>{{ p.word_count }}</td><td>{{ p.internal_links }}</td><td>{{ p.schema_types_json or '—' }}</td><td>{{ p.response_ms }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel"><p>No technical crawl pages are available.</p></div>{% endif %}
+</section>
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">05</div>
+      <h2>GEO / AEO Readiness <span class="info-tip" tabindex="0" data-tooltip="Separate page-level Generative Engine Optimization and Answer Engine Optimization scores from the latest structured audit.">?</span></h2>
+    </div>
+  </div>
+  {% if report.audit_pages %}
+  <div class="table-wrap report-table">
+    <table>
+      <thead><tr><th>Page</th><th>GEO</th><th>AEO</th><th>Combined</th></tr></thead>
+      <tbody>
+      {% for p in report.audit_pages %}
+      <tr>
+        <td class="report-url">{{ p.path }}</td>
+        <td><span class="score-pill">{{ p.geo_score }}</span></td>
+        <td><span class="score-pill">{{ p.aeo_score }}</span></td>
+        <td><span class="score-pill">{{ p.combined_score }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="panel"><p>No GEO/AEO page audit is available.</p></div>{% endif %}
+</section>
+
+<section class="report-section">
+  <div class="report-section-head">
+    <div>
+      <div class="report-section-number">06</div>
+      <h2>Page-by-Page Findings <span class="info-tip" tabindex="0" data-tooltip="Evidence and recommended action for every stored GEO/AEO signal. Expand only the pages you need to work on.">?</span></h2>
+    </div>
+  </div>
+
+  {% for p in report.audit_pages %}
+  <details class="page-findings">
+    <summary>
+      <span class="page-findings-path">{{ p.path }}</span>
+      <span class="page-findings-scores">GEO {{ p.geo_score }} - AEO {{ p.aeo_score }} - Combined {{ p.combined_score }}</span>
+    </summary>
+    <div class="table-wrap report-table">
+      <table>
+        <thead><tr><th>Family</th><th>Check</th><th>Status</th><th>Severity</th><th>Evidence</th><th>What to do</th></tr></thead>
+        <tbody>
+        {% for s in report.signals_by_page.get(p.path, []) %}
+        <tr class="finding-row finding-{{ s.observed_status|lower }}">
+          <td><span class="family-badge">{{ s.family }}</span></td>
+          <td><strong>{{ s.title }}</strong><div class="signal-small">{{ s.category }}</div></td>
+          <td>
+            <span class="status-badge status-{{ s.observed_status|lower }}">
+              {% if s.observed_status == 'PASS' %}<span class="cue-icon">✓</span>
+              {% elif s.observed_status == 'FAIL' %}<span class="cue-icon">!</span>
+              {% elif s.observed_status == 'PARTIAL' %}<span class="cue-icon">~</span>
+              {% else %}<span class="cue-icon">?</span>{% endif %}
+              {{ s.observed_status }}
+            </span>
+          </td>
+          <td><span class="severity-badge severity-{{ s.severity|lower }}"><span class="cue-dot"></span>{{ s.severity }}</span></td>
+          <td>{{ s.evidence }}</td>
+          <td><strong>{{ s.recommendation or 'Review this finding.' }}</strong></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% endfor %}
+</section>
+
+<section class="report-section">
+  <div class="report-section-head"><div><div class="report-section-number">07</div><h2>Scope and Limitations</h2></div></div>
+  <div class="panel report-limitations">
+    <p>This report is a frozen session generated from the evidence stored by the application at the time the report was created. It combines GSC keyword/page observations, the latest technical crawl, and the latest structured GEO/AEO audit.</p>
+    <p><strong>Not yet measured:</strong> inbound backlink authority, cross-platform entity consistency, live AI citations and mentions, Google AI Overview visibility, LLM share of voice, and a dedicated AIO score. These are shown as out of scope rather than inferred.</p>
+    {% if report.audit and report.audit.status == 'partial' and report.audit.error %}<p><strong>Partial audit note:</strong> {{ report.audit.error }}</p>{% endif %}
+  </div>
+</section>
+
+{% endblock %}

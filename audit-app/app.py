@@ -26,6 +26,8 @@ SEO_DB = Path(os.environ.get("SEO_DB", "/data/opengsc/prod.db"))
 REPORTS_DIR = Path(os.environ.get("REPORTS_DIR", "/data/reports"))
 RESEARCH_DB = Path(os.environ.get("RESEARCH_DB", "/data/dashboard/research.db"))
 from audits.geo_aeo.service import run_audit as run_geo_aeo_audit
+from reports.full_pdf import collect_report_data, build_full_report_pdf
+from reports.web_report import create_report_session, load_report_session, list_report_sessions, prepare_report_view
 
 app = Flask(__name__)
 
@@ -1930,6 +1932,54 @@ def reports(domain):
         sites=get_sites(),
         site=site,
         reports=report_files(domain),
+        report_sessions=list_report_sessions(RESEARCH_DB, domain),
+    )
+
+
+@app.post("/d/<domain>/reports/full")
+def generate_full_web_report(domain):
+    site = get_site(domain)
+    report_data = collect_report_data(
+        domain=domain,
+        site_id=_site_id_value(site),
+        seo_db=SEO_DB,
+        research_db=RESEARCH_DB,
+    )
+    report_id = create_report_session(RESEARCH_DB, domain, report_data)
+    return redirect(url_for("report_session_view", domain=domain, report_id=report_id))
+
+
+@app.get("/d/<domain>/reports/<report_id>")
+def report_session_view(domain, report_id):
+    site = get_site(domain)
+    session = load_report_session(RESEARCH_DB, domain, report_id)
+    if not session:
+        abort(404)
+    return render_template(
+        "full_report.html",
+        sites=get_sites(),
+        site=site,
+        report_session=session,
+        report=prepare_report_view(session["snapshot"]),
+    )
+
+
+@app.get("/d/<domain>/reports/<report_id>/pdf")
+def report_session_pdf(domain, report_id):
+    get_site(domain)
+    session = load_report_session(RESEARCH_DB, domain, report_id)
+    if not session:
+        abort(404)
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    safe_domain = re.sub(r"[^A-Za-z0-9._-]+", "-", domain).strip("-") or "domain"
+    filename = f"{safe_domain}-audit-{report_id}.pdf"
+    output_path = REPORTS_DIR / filename
+    build_full_report_pdf(session["snapshot"], output_path)
+    return send_file(
+        output_path,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
     )
 
 
