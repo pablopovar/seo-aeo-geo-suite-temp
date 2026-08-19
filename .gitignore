@@ -47,3 +47,38 @@ reports/*
 # Local backups
 *.bak
 *.bak-*
+
+# ------------------------------------------------------------
+# External development artifacts
+# Patches/builds belong in ../patches/, never inside this repo.
+# ------------------------------------------------------------
+
+# Archives / downloaded builds
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.7z
+
+# Patch files
+*.patch
+*.diff
+
+# Patch/work directories
+patch/
+patches/
+patch-*/
+*-patch/
+*-patches/
+
+# Backup / temporary copies
+*.bak
+*.bak-*
+*.backup
+*.orig
+*.rej
+*.PBAK
+*.PBAK.*
+*~
