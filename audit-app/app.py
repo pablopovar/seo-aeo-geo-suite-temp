@@ -22,11 +22,10 @@ import urllib.error
 
 
 APP_DIR = Path(__file__).resolve().parent
-SEO_DB = Path(os.environ.get("SEO_DB", "/data/seo/prod.db"))
+SEO_DB = Path(os.environ.get("SEO_DB", "/data/opengsc/prod.db"))
 REPORTS_DIR = Path(os.environ.get("REPORTS_DIR", "/data/reports"))
 RESEARCH_DB = Path(os.environ.get("RESEARCH_DB", "/data/dashboard/research.db"))
-AEO_AUDITOR_URL = os.environ.get("AEO_AUDITOR_URL", "http://host.docker.internal:8000")
-AEO_AUDIT_COMMAND = os.environ.get("AEO_AUDIT_COMMAND", "").strip()
+from audits.geo_aeo.service import run_audit as run_geo_aeo_audit
 
 app = Flask(__name__)
 
@@ -793,14 +792,7 @@ def build_domain_export(site):
     return archive
 
 def geo_engine_audit(url, page_type="auto"):
-    endpoint=AEO_AUDITOR_URL.rstrip("/")+"/api/audit"
-    payload=json.dumps({"url":url,"page_type":page_type}).encode("utf-8")
-    req=urllib.request.Request(endpoint,data=payload,headers={"Content-Type":"application/json"},method="POST")
-    with urllib.request.urlopen(req,timeout=120) as response:
-        data=json.loads(response.read().decode("utf-8"))
-    if not data.get("ok"):
-        raise RuntimeError(data.get("error") or "Audit engine error")
-    return data["report"]
+    return run_geo_aeo_audit(url, page_type)
 
 
 def latest_audit_page(con,page_id):
@@ -1112,7 +1104,6 @@ def overview(domain):
         summary=summary,
         recent=recent,
         reports=report_files(domain)[:5],
-        aeo_auditor_url=AEO_AUDITOR_URL,
     )
 
 
@@ -1939,8 +1930,6 @@ def reports(domain):
         sites=get_sites(),
         site=site,
         reports=report_files(domain),
-        aeo_auditor_url=AEO_AUDITOR_URL,
-        command_enabled=bool(AEO_AUDIT_COMMAND),
     )
 
 
@@ -1969,18 +1958,18 @@ def helpers():
 
 
 # PB SEO crawler
-from seo_crawler import register_crawler
+from crawlers.seo import register_crawler
 app.config["PB_GET_SITES"] = get_sites
 register_crawler(app, research_db, get_site)
 
 
 # PB delete-domain feature
-from delete_domain import register_delete_domain
+from services.domains import register_delete_domain
 register_delete_domain(app, research_db, get_site, get_sites)
 
 
 # PB extension: DataForSEO
-from dataforseo_extension import register_dataforseo_extension
+from integrations.dataforseo.extension import register_dataforseo_extension
 register_dataforseo_extension(app, research_db, get_site, get_sites)
 
 if __name__ == "__main__":

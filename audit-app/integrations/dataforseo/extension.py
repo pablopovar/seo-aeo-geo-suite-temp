@@ -1,5 +1,5 @@
 from flask import redirect, render_template, request, url_for
-import dataforseo_connector as dfs
+from . import connector as dfs
 
 def register_dataforseo_extension(app,research_db,get_site,get_sites):
     @app.get("/d/<domain>/extensions/dataforseo")

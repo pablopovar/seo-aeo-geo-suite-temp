@@ -8,17 +8,7 @@
   </form>
 </div>
 
-{% if request.args.get('started') %}
-<div class="notice">Audit command started. Refresh this page when it completes.</div>
-{% endif %}
-
-<div class="panel">
-  {% if command_enabled %}
-  <p>The dashboard is configured to launch the GEO/AEO auditor directly.</p>
-  {% else %}
-  <p>No direct audit command is configured yet. “Run GEO/AEO Audit” opens the existing auditor at <code>{{ aeo_auditor_url }}</code>.</p>
-  {% endif %}
-</div>
+<div class="panel"><p>GEO/AEO audits run directly inside the audit application.</p></div>
 
 <ul class="reports large">
 {% for r in reports %}
